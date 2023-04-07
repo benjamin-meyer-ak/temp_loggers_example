@@ -10,7 +10,7 @@ I would like to have an R script that can perform the following tasks:
 
 1.  Use a function to import multiple csv files from the same directory, and collate them all into a single dataframe.
 
-    -   It is important that the csv files remain unaltered prior to import, and that they do not require manual "cleaning" prior to import
+    -   It is important that the csv files remain unaltered prior to import, and that they do not require manual "cleaning" prior to import (i.e. manual deletion of rows or columns)
 
 2.  Use a separate data table with defined time periods of "flagged data" to identify flagged data in each time series
 
