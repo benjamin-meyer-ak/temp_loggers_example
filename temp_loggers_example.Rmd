@@ -38,12 +38,16 @@ It is my preference that we accomplish this task through GitHub. If hired, pleas
 
 Thank you!
 
-**Example Time series (for one logger)**
+**Basic Example Time series (for one logger)**
 
 ```{r}
+# load packages
 library(tidyverse)
 library(magrittr)
 library(lubridate)
+library(janitor)
+library(hms)
+library(plotly)
 
 # read in csv
 temp_dat <- read_csv("input/csv/21235341.csv", col_types = cols("i", "c", "d", "?", "_", "_", "_"), skip = 1) %>%
@@ -57,7 +61,95 @@ temp_dat %>%
   ggplot(aes(date_time,temp_C)) +
   geom_point()
 
+
+```
+
+<br>
+
+From the above plot, we can see that the logger is exposed to air rather than water; we would like to flag the data between approximately 7/4/2022 12:00:00 to 7/6/2022 12:00:00.
+
+<br>
+
+**Additional Example**
+```{r}
+
+# read in, combine, and prepare multiple csv files
+
+# specify directory of cvs files
+dir <- "input/csv/"
+
+# read in and combine all csv files
+temp_dat <- list.files(path = dir,
+              pattern="*.csv", 
+              full.names = T) %>% 
+    map_df(~read_csv(., skip = 1)) %>%
+  remove_empty() %>%
+  select(starts_with(c("Date","Temp"))) %>%
+  pivot_longer(cols = starts_with("Temp"),
+               names_to = "logger_id",
+               values_to = "temp_C") %>%
+  filter(!is.na(temp_C)) %>%
+  mutate(logger_id = str_sub(logger_id,-9,-2)) %>%
+  rename(date_time = `Date Time, GMT-08:00`) %>%
+  
+  # convert date time to compatible class
+  transform(date_time = mdy_hms(date_time))
+
+```
+
+The above chunk appears to be functional in reading in and combining multiple csvs. However I, would appreciate any advice on how to make it more efficient, and double-checking to see that it is not making some kind of systematic error.
+
+Next, we will visualize logger time series one at a time, and record the parts of each time series that we would like to remove in the file located at "input/temp_logger_flagged_data.csv". An example logger time series is shown below.
+
+```{r}
+
+# plot
+logger <- "21444843"
+
+ggplotly(
+  p <- temp_dat %>%
+  filter(logger_id == logger) %>%
+  ggplot(aes(date_time,temp_C)) +
+  geom_point()
+)
+
 ```
 
 
-From the above plot, we can see that the logger is exposed to air rather than water; we would like to flag the data between approximately 7/4/2022 12:00:00 to 7/6/2022 12:00:00.
+Next, we will read in a table of time periods for each logger that we would like flag for removal. We will mutate a a column titled "useData", with "1" indicating OK data, and "0" indicating bad data.
+
+```{r}
+
+# read in file of visually identified flagged data
+flagged_data <- read.csv("input/temp_logger_flagged_data.csv", sep = ",") %>%
+  transform(date_time_start = mdy_hm(date_time_start),
+            date_time_stop = mdy_hm(date_time_stop)) %>%
+  transform(logger_id = as.character(logger_id)) %>%
+  select(-notes,-X) %>%
+  filter(!is.na(logger_id))
+
+# from the dataframe of all water temp data, add a new column of flagged data; with "useData = 0" for flagged time periods
+flagged_data_df <- temp_dat %>%
+  mutate(useData = case_when(
+    date_time >= flagged_data$date_time_start & 
+      date_time <= flagged_data$date_time_stop & 
+      logger_id == flagged_data$logger_id ~ 0
+  ))
+
+```
+
+Here, we encounter an error, and code does not behave as expected. The above chunk will run, but the following error is generated: 
+
+
+Warning: There were 3 warnings in `mutate()`.
+The first warning was:
+ℹ In argument: `useData = case_when(...)`.
+Caused by warning in `>=.default`:
+! longer object length is not a multiple of shorter object length
+ℹ Run dplyr::last_dplyr_warnings() to see the 2 remaining warnings.
+
+
+The resulting dataframe, "flagged_data_df" does not flag all data appropriately within the specified time windows, only partially. Reasons foor this error are unclear.
+
+
+
