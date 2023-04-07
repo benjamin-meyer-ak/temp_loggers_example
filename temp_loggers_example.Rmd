@@ -26,7 +26,7 @@ I would like to have an R script that can perform the following tasks:
 
             -   for logger #20012591
 
-    -    The script would mutate a new "flagged_data" column to identify flagged data from these time periods
+    -   The script would mutate a new "flagged_data" column to identify flagged data from these time periods
 
     -   Multiple time periods would be identified as flagged data, from multiple loggers
 
@@ -37,3 +37,26 @@ If possible, it is my preference that the script is based in tidyverse functions
 It is my preference that we accomplish this task through GitHub. If hired, please make a "pull request" to the example repository.
 
 Thank you!
+
+**Example Time series (for one logger)**
+
+```{r}
+library(tidyverse)
+library(magrittr)
+
+# read in csv
+temp_dat <- read_csv("input/csv/21235341.csv", skip = 1) %>%
+  select(starts_with(c("Date","Temp"))) 
+colnames(temp_dat) <- c("date_time","temp_C")
+temp_dat %<>%
+  transform(date_time = mdy_hms(date_time))
+
+# plot
+temp_dat %>%
+  ggplot(aes(date_time,temp_C)) +
+  geom_point()
+
+```
+
+
+From the above plot, we can see that the logger is exposed to air rathwr than water; we would like to flag the data between approximately 7/4/2022 12:00:00 to 7/6/2022 12:00:00.
