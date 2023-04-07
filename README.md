@@ -28,9 +28,11 @@ I would like to have an R script that can perform the following tasks:
 
 I have placed three example csv files in the "input" folder of this repository. I have also placed an example "temp_logger_flagged_data.csv" file in the same folder.
 
-If possible, it is my preference that the script is based in tidyverse functions, as my colleagues are more familiar with this language. If it is not possible to do this, that is OK.
+If possible, it is my preference that the script is based around tidyverse functions when possible, as my colleagues are more familiar with this language. If it is not possible to do this, that is OK.
 
-It is my preference that we accomplish this task through GitHub. If hired, please make a "pull request" to the example repository.
+It is my preference that we accomplish this task through GitHub. If hired, please make a "pull request" to this example repository.
 
 Thank you!
+
+
 
