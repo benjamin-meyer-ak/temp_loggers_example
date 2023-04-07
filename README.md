@@ -36,3 +36,25 @@ Thank you!
 
 
 
+## Example Time series (for one logger)
+
+```{r}
+library(tidyverse)
+library(magrittr)
+
+# read in csv
+temp_dat <- read_csv("input/csv/21235341.csv", skip = 1) %>%
+  select(starts_with(c("Date","Temp"))) 
+colnames(temp_dat) <- c("date_time","temp_C")
+temp_dat %<>%
+  transform(date_time = mdy_hms(date_time))
+
+# plot
+temp_dat %>%
+  ggplot(aes(date_time,temp_C)) +
+  geom_point()
+
+```
+
+
+From the above plot, we can see that the logger is exposed to air rathwr than water; we would like to flag the data between approximately 7/4/2022 12:00:00 to 7/6/2022 12:00:00.
